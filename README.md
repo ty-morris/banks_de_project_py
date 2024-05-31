@@ -61,10 +61,12 @@ def extract(url, table_attribs):
         print("Error: Table not found after 'By market capitalization' heading.")
         return df
 
+    # Extract rows from the table, skipping the header row
     rows = table.find_all('tr')
     for row in rows[1:]:  # Skip the header row
         cols = row.find_all('td')
         if len(cols) != 0:
+            # Extract bank name and market capitalization values
             bank_name = cols[0].get_text(strip=True)
             market_cap = cols[2].get_text(strip=True).replace('\n', '')
 
@@ -84,10 +86,10 @@ def transform(df, exchange_rate_file):
     # Read exchange rate CSV file
     exchange_rate_df = pd.read_csv(exchange_rate_file)
     
-    # Convert to dictionary
+    # Convert the exchange rates into a dictionary
     exchange_rate = exchange_rate_df.set_index('Currency').to_dict()['Rate']
     
-    # Add new columns scaled by the corresponding exchange rate factors
+    # Add new columns for market capitalization in GBP, EUR, and INR
     df['MC_GBP_Billion'] = [np.round(x * exchange_rate['GBP'], 2) for x in df['MC_USD_Billion']]
     df['MC_EUR_Billion'] = [np.round(x * exchange_rate['EUR'], 2) for x in df['MC_USD_Billion']]
     df['MC_INR_Billion'] = [np.round(x * exchange_rate['INR'], 2) for x in df['MC_USD_Billion']]
@@ -95,50 +97,52 @@ def transform(df, exchange_rate_file):
     return df
 
 def load_to_db(conn, table_name, df):
+    # Write the DataFrame to a specified table in the SQLite database
     df.to_sql(table_name, conn, if_exists='replace', index=False)
     print(f"Data successfully written to table '{table_name}' in the database.")
 
 def run_queries(conn, query):
+    # Print the query statement and execute the query
     print(f"Executing query:\n{query}")
     cursor = conn.cursor()
     cursor.execute(query)
     results = cursor.fetchall()
+    # Print all results from the query
     for row in results:
         print(row)
 
-# Define the URL and the table attributes
+# Define the URL and the table attributes for data extraction
 url = "https://web.archive.org/web/20230908091635/https://en.wikipedia.org/wiki/List_of_largest_banks"
 table_attribs = ['bank name', 'MC_USD_Billion']
-exchange_rate = exchange_rate_csv
 
-# Extract data
+# Extract data using the extract() function
 df = extract(url, table_attribs)
 
 # Path to the exchange rate CSV file
 exchange_rate_file = 'exchange_rate.csv'
 
-# Transform data
+# Transform the extracted data using the transform() function
 df_transformed = transform(df, exchange_rate_file)
 
 # Connect to the SQLite database
 conn = sqlite3.connect('Banks.db')
 
-# Define the table name
+# Define the table name for the database
 table_name = 'Largest_banks'
 
-# Load the transformed data to the database
+# Load the transformed data into the database using the load_to_db() function
 load_to_db(conn, table_name, df_transformed)
 
-# Define the queries
+# Define sample queries to be executed on the database
 queries = [
-    "SELECT * FROM Largest_banks",
-    "SELECT AVG(MC_USD_Billion) FROM Largest_banks",
-    "SELECT `bank name` FROM Largest_banks LIMIT 5"
+    "SELECT * FROM Largest_banks",  # Query to select all records from the table
+    "SELECT AVG(MC_USD_Billion) FROM Largest_banks",  # Query to calculate the average market capitalization in USD
+    "SELECT `bank name` FROM Largest_banks LIMIT 5"  # Query to select the names of the top 5 banks
 ]
 
-# Execute the queries
+# Execute the queries using the run_queries() function
 for query in queries:
     run_queries(conn, query)
 
-# Close the connection
+# Close the database connection
 conn.close()
