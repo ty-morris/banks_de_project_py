@@ -20,6 +20,21 @@ Create an automated system to generate this information so that the same can be 
 ### Usage:
 Run the script in a Python environment with the necessary packages installed (`requests`, `bs4`, `pandas`, `numpy`, `sqlite3`).
 
+### Parameters:
+
+| Parameter                     | Value                                                                                                                  |
+|-------------------------------|------------------------------------------------------------------------------------------------------------------------|
+| Code name                     | banks_project.py                                                                                                        |
+| Data URL                      | [https://web.archive.org/web/20230908091635/https://en.wikipedia.org/wiki/List_of_largest_banks](https://web.archive.org/web/20230908091635/https://en.wikipedia.org/wiki/List_of_largest_banks) |
+| Exchange rate CSV path        | [https://cf-courses-data.s3.us.cloud-object-storage.appdomain.cloud/IBMSkillsNetwork-PY0221EN-Coursera/labs/v2/exchange_rate.csv](https://cf-courses-data.s3.us.cloud-object-storage.appdomain.cloud/IBMSkillsNetwork-PY0221EN-Coursera/labs/v2/exchange_rate.csv) |
+| Table Attributes (Extraction) | Name, MC_USD_Billion                                                                                                    |
+| Table Attributes (final)      | Name, MC_USD_Billion, MC_GBP_Billion, MC_EUR_Billion, MC_INR_Billion                                                    |
+| Output CSV Path               | ./Largest_banks_data.csv                                                                                                |
+| Database name                 | Banks.db                                                                                                                |
+| Table name                    | Largest_banks                                                                                                           |
+| Log file                      | code_log.txt                                                                                                            |
+
+
 ```python
 import requests
 from bs4 import BeautifulSoup
